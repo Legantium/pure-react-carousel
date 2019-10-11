@@ -17,8 +17,8 @@ export default function WithStore(
 
     static defaultProps = {
       children: null,
-      currentWindow: window,
-      currentDocument: document,
+      currentWindow: null,
+      currentDocument: null,
     };
 
     static contextTypes = {
@@ -46,9 +46,17 @@ export default function WithStore(
     }
 
     render() {
-      const { currentWindow, currentDocument, ...rest } = this.props;
+      const { currentWindow = null, currentDocument = null, ...rest } = this.props;
 
       const props = deepMerge(this.state, rest);
+
+      if (currentWindow !== null) {
+        props.currentWindow = currentWindow;
+      }
+
+      if (currentDocument !== null) {
+        props.currentdocument = currentDocument;
+      }
 
       return (
         <WrappedComponent
@@ -56,8 +64,6 @@ export default function WithStore(
             this.instance = el;
           }} // allows access to refs in wrapped components.
           {...props}
-          currentWindow={currentWindow}
-          currentDocument={currentDocument}
           carouselStore={{
             getStoreState: this.context.carouselStore.getStoreState,
             masterSpinnerError: this.context.carouselStore.masterSpinnerError,
