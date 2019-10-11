@@ -404,7 +404,7 @@ const Slider = class Slider extends React.Component {
 
   play() {
     const { playDirection } = this.props;
-    this.interval = setInterval(playDirection === 'forward' ? this.playForward : this.playBackward, this.props.interval);
+    this.interval = this.currentWindow.setInterval(playDirection === 'forward' ? this.playForward : this.playBackward, this.props.interval);
   }
 
   stop() {

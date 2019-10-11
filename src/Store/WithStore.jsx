@@ -11,10 +11,14 @@ export default function WithStore(
   class Wrapper extends React.Component {
     static propTypes = {
       children: CarouselPropTypes.children,
+      currentWindow: propTypes.object,
+      currentDocument: propTypes.object,
     };
 
     static defaultProps = {
       children: null,
+      currentWindow: window,
+      currentDocument: document,
     };
 
     static contextTypes = {
@@ -42,7 +46,9 @@ export default function WithStore(
     }
 
     render() {
-      const props = deepMerge(this.state, this.props);
+      const { currentWindow, currentDocument, ...rest } = this.props;
+
+      const props = deepMerge(this.state, rest);
 
       return (
         <WrappedComponent
@@ -50,6 +56,8 @@ export default function WithStore(
             this.instance = el;
           }} // allows access to refs in wrapped components.
           {...props}
+          currentWindow={currentWindow}
+          currentDocument={currentDocument}
           carouselStore={{
             getStoreState: this.context.carouselStore.getStoreState,
             masterSpinnerError: this.context.carouselStore.masterSpinnerError,
