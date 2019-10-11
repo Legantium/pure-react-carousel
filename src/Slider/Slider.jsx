@@ -54,6 +54,9 @@ const Slider = class Slider extends React.Component {
     }),
     trayTag: PropTypes.string,
     visibleSlides: PropTypes.number,
+
+    currentDocument: PropTypes.object,
+    currentWindow: PropTypes.object,
   }
 
   static defaultProps = {
@@ -73,6 +76,8 @@ const Slider = class Slider extends React.Component {
     trayProps: {},
     trayTag: 'ul',
     visibleSlides: 1,
+    currentDocument: document,
+    currentWindow: window,
   }
 
   static slideSizeInPx(orientation, sliderTrayWidth, sliderTrayHeight, totalSlides) {
@@ -125,15 +130,18 @@ const Slider = class Slider extends React.Component {
     this.originalOverflow = null;
     this.scrollParent = null;
     this.scrollStopTimer = null;
+
+    this.currentWindow = (props && props.currentWindow) || window;
+    this.currentDocument = (props && props.currentDocument) || document;
   }
 
   componentDidMount() {
     if (this.props.lockOnWindowScroll) {
-      window.addEventListener('scroll', this.handleDocumentScroll, false);
+      this.currentWindow.addEventListener('scroll', this.handleDocumentScroll, false);
     }
-    document.documentElement.addEventListener('mouseleave', this.handleOnMouseUp, false);
-    document.documentElement.addEventListener('mousemove', this.handleOnMouseMove, false);
-    document.documentElement.addEventListener('mouseup', this.handleOnMouseUp, false);
+    this.currentDocument.documentElement.addEventListener('mouseleave', this.handleOnMouseUp, false);
+    this.currentDocument.documentElement.addEventListener('mousemove', this.handleOnMouseMove, false);
+    this.currentDocument.documentElement.addEventListener('mouseup', this.handleOnMouseUp, false);
 
     if (this.props.isPlaying) this.play();
   }
@@ -156,14 +164,14 @@ const Slider = class Slider extends React.Component {
   }
 
   componentWillUnmount() {
-    document.documentElement.removeEventListener('mouseleave', this.handleOnMouseUp, false);
-    document.documentElement.removeEventListener('mousemove', this.handleOnMouseMove, false);
-    document.documentElement.removeEventListener('mouseup', this.handleOnMouseUp, false);
-    window.removeEventListener('scroll', this.handleDocumentScroll, false);
+    this.currentDocument.documentElement.removeEventListener('mouseleave', this.handleOnMouseUp, false);
+    this.currentDocument.documentElement.removeEventListener('mousemove', this.handleOnMouseMove, false);
+    this.currentDocument.documentElement.removeEventListener('mouseup', this.handleOnMouseUp, false);
+    this.currentWindow.removeEventListener('scroll', this.handleDocumentScroll, false);
 
     this.stop();
-    window.cancelAnimationFrame.call(window, this.moveTimer);
-    window.clearTimeout(this.scrollStopTimer);
+    this.currentWindow.cancelAnimationFrame.call(this.currentWindow, this.moveTimer);
+    this.currentWindow.clearTimeout(this.scrollStopTimer);
 
     this.isDocumentScrolling = null;
     this.moveTimer = null;
@@ -196,7 +204,7 @@ const Slider = class Slider extends React.Component {
       isPlaying: false,
     });
 
-    window.cancelAnimationFrame.call(window, this.moveTimer);
+    this.currentWindow.cancelAnimationFrame.call(this.currentWindow, this.moveTimer);
 
     if (this.props.orientation === 'vertical') {
       this.props.carouselStore.setStoreState({
@@ -213,16 +221,18 @@ const Slider = class Slider extends React.Component {
   }
 
   fakeOnDragMove(screenX, screenY) {
-    this.moveTimer = window.requestAnimationFrame.call(window, () => {
-      this.setState(state => ({
-        deltaX: screenX - state.startX,
-        deltaY: screenY - state.startY,
-      }));
-    });
+    this.moveTimer = this.currentWindow.requestAnimationFrame.call(
+      this.currentWindow, () => {
+        this.setState(state => ({
+          deltaX: screenX - state.startX,
+          deltaY: screenY - state.startY,
+        }));
+      },
+    );
   }
 
   fakeOnDragEnd() {
-    window.cancelAnimationFrame.call(window, this.moveTimer);
+    this.currentWindow.cancelAnimationFrame.call(this.currentWindow, this.moveTimer);
 
     this.computeCurrentSlide();
 
@@ -309,8 +319,8 @@ const Slider = class Slider extends React.Component {
   handleDocumentScroll() {
     if (!this.props.touchEnabled) return;
     this.isDocumentScrolling = true;
-    window.clearTimeout(this.scrollStopTimer);
-    this.scrollStopTimer = window.setTimeout(() => {
+    this.currentWindow.clearTimeout(this.scrollStopTimer);
+    this.scrollStopTimer = this.currentWindow.setTimeout(() => {
       this.isDocumentScrolling = false;
     }, 66);
   }
@@ -324,7 +334,7 @@ const Slider = class Slider extends React.Component {
       return;
     }
 
-    window.cancelAnimationFrame.call(window, this.moveTimer);
+    this.currentWindow.cancelAnimationFrame.call(this.currentWindow, this.moveTimer);
 
     const touch = ev.targetTouches[0];
     this.fakeOnDragMove(touch.screenX, touch.screenY);
@@ -398,7 +408,7 @@ const Slider = class Slider extends React.Component {
   }
 
   stop() {
-    window.clearInterval(this.interval);
+    this.currentWindow.clearInterval(this.interval);
     this.interval = null;
   }
 
@@ -410,7 +420,9 @@ const Slider = class Slider extends React.Component {
    */
   lockScroll() {
     const getScrollParent = new GetScrollParent();
-    this.scrollParent = getScrollParent.getScrollParent(this.sliderTrayElement);
+    this.scrollParent = getScrollParent.getScrollParent(
+      this.currentDocument, this.sliderTrayElement,
+    );
     if (this.scrollParent) {
       this.originalOverflow = this.originalOverflow || this.scrollParent.style.overflow;
       this.scrollParent.style.overflow = 'hidden';
@@ -538,6 +550,8 @@ const Slider = class Slider extends React.Component {
       trayProps,
       trayTag: TrayTag,
       visibleSlides,
+      currentDocument,
+      currentWindow,
       ...props
     } = this.props;
 

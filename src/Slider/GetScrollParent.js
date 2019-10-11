@@ -35,7 +35,7 @@ export default class GetScrollParent {
   }
 
 
-  scrollParent(_node) {
+  scrollParent(currentDocument, _node) {
     const ps = this.parents(_node.parentNode, []);
     for (let i = 0; i < ps.length; i += 1) {
       if (GetScrollParent.scroll(ps[i])) {
@@ -43,11 +43,11 @@ export default class GetScrollParent {
       }
     }
 
-    return document.scrollingElement || document.documentElement;
+    return currentDocument.scrollingElement || currentDocument.documentElement;
   }
 
-  getScrollParent(_node) {
+  getScrollParent(currentDocument, _node) {
     if (!GetScrollParent.isNodeValid(_node)) return null;
-    return this.scrollParent(_node);
+    return this.scrollParent(currentDocument, _node);
   }
 }
