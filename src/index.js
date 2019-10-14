@@ -13,3 +13,5 @@ export { default as Slider } from './Slider';
 export { default as Spinner } from './Spinner';
 export { default as Store } from './Store/Store';
 export { default as WithStore } from './Store/WithStore';
+export { default as WindowContext } from './Context/WindowContext';
+export { default as DocumentContext } from './Context/DocumentContext';

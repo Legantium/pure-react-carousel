@@ -11,14 +11,10 @@ export default function WithStore(
   class Wrapper extends React.Component {
     static propTypes = {
       children: CarouselPropTypes.children,
-      currentWindow: propTypes.object,
-      currentDocument: propTypes.object,
     };
 
     static defaultProps = {
       children: null,
-      currentWindow: null,
-      currentDocument: null,
     };
 
     static contextTypes = {
@@ -46,17 +42,7 @@ export default function WithStore(
     }
 
     render() {
-      const { currentWindow = null, currentDocument = null, ...rest } = this.props;
-
-      const props = deepMerge(this.state, rest);
-
-      if (currentWindow !== null) {
-        props.currentWindow = currentWindow;
-      }
-
-      if (currentDocument !== null) {
-        props.currentdocument = currentDocument;
-      }
+      const props = deepMerge(this.state, this.props);
 
       return (
         <WrappedComponent

@@ -5,6 +5,8 @@ import GetScrollParent from './GetScrollParent';
 import {
   CarouselPropTypes, cn, pct, boundedRange,
 } from '../helpers';
+import WindowContext from '../Context/WindowContext';
+import DocumentContext from '../Context/DocumentContext';
 import s from './Slider.scss';
 
 const Slider = class Slider extends React.Component {
@@ -139,6 +141,7 @@ const Slider = class Slider extends React.Component {
     if (this.props.lockOnWindowScroll) {
       this.currentWindow.addEventListener('scroll', this.handleDocumentScroll, false);
     }
+
     this.currentDocument.documentElement.addEventListener('mouseleave', this.handleOnMouseUp, false);
     this.currentDocument.documentElement.addEventListener('mousemove', this.handleOnMouseMove, false);
     this.currentDocument.documentElement.addEventListener('mouseup', this.handleOnMouseUp, false);
@@ -664,4 +667,33 @@ const Slider = class Slider extends React.Component {
   }
 };
 
-export default Slider;
+
+function SliderWithWinDoc(props) {
+  return (
+    <WindowContext.Consumer>
+      {currentWindow => (
+        <DocumentContext.Consumer>
+          {currentDocument => (
+            <Slider
+              ref={props.forwardedRef}
+              {...props}
+              currentWindow={currentWindow}
+              currentDocument={currentDocument}
+            />
+          )
+              }
+        </DocumentContext.Consumer>
+      )}
+    </WindowContext.Consumer>
+  );
+}
+
+SliderWithWinDoc.propTypes = {
+  forwardedRef: PropTypes.any,
+};
+
+SliderWithWinDoc.defaultProps = {
+  forwardedRef: null,
+};
+
+export default React.forwardRef((props, ref) => <SliderWithWinDoc {...props} forwardedRef={ref} />);
